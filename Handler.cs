@@ -1,36 +1,63 @@
 using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
+using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.Core;
 
-namespace AwsDotnetCsharp
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.DataModel;
+using Amazon.Lambda;
+using Amazon;
+using serverless_auth_msg_board.model;
+using Newtonsoft.Json;
+
+namespace serverless_auth_msg_board
 {
     public class Handler
     {
-       public Response Hello(Request request)
-       {
-           return new Response("Go Serverless v1.0! Your function executed successfully!", request);
-       }
-    }
+        const string MESSAGE_BOARD_ENV_VAR_NAME = "DYNAMODB_MESSAGES_TABLE";
+        IDynamoDBContext DDBContext { get; set; }
+        AmazonLambdaClient lambda;
 
-    public class Response
-    {
-      public string Message {get; set;}
-      public Request Request {get; set;}
+        public Handler()
+        {
+            var messagesTableName = Environment.GetEnvironmentVariable(MESSAGE_BOARD_ENV_VAR_NAME);
 
-      public Response(string message, Request request){
-        Message = message;
-        Request = request;
-      }
-    }
+            lambda = new AmazonLambdaClient();
 
-    public class Request
-    {
-      public string Key1 {get; set;}
-      public string Key2 {get; set;}
-      public string Key3 {get; set;}
+            if (messagesTableName == null)
+                Console.WriteLine("tableName is null");
 
-      public Request(string key1, string key2, string key3){
-        Key1 = key1;
-        Key2 = key2;
-        Key3 = key3;
-      }
+            if (!string.IsNullOrEmpty(messagesTableName))
+            {
+                AWSConfigsDynamoDB.Context.TypeMappings[typeof(Message)] = new Amazon.Util.TypeMapping(typeof(Message), messagesTableName);
+            }
+
+            var config = new DynamoDBContextConfig { Conversion = DynamoDBEntryConversion.V2 };
+            this.DDBContext = new DynamoDBContext(new AmazonDynamoDBClient(), config);
+        }
+
+
+        [LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
+        public async Task<APIGatewayProxyResponse> CreateMessage(APIGatewayProxyRequest request, ILambdaContext context)
+        {
+            Console.WriteLine("Create Invoked");
+            var createMEssageRequest = JsonConvert.DeserializeObject<CreateMessageRequest>(request?.Body);
+
+            var message = new Message() {
+              MessageContent = createMEssageRequest.Message
+            };
+            Console.WriteLine(message.MessageContent);
+           await DDBContext.SaveAsync<Message>(message);
+           Console.WriteLine("Written!");
+            var response = new APIGatewayProxyResponse
+            {
+                StatusCode = (int)HttpStatusCode.OK,
+                Body = "{}",
+                Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } }
+            };
+            return response;
+        }
     }
 }
