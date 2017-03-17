@@ -1,4 +1,4 @@
-namespace serverless_auth_msg_board.model
+namespace ServerlessAuthMessageBoard.model
 {
     public class CreateMessageRequest
     {
