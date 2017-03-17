@@ -10,16 +10,12 @@ provider:
 
   environment:
     DYNAMODB_MESSAGES_TABLE: "${self:service}-${opt:stage, self:provider.stage}-message-board"
+
   iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:Query
-        - dynamodb:Scan
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_MESSAGES_TABLE}"
+  - Effect: "Allow"
+    Action:
+      - dynamodb:*
+    Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_MESSAGES_TABLE}"
 
 functions:
   create:
@@ -64,8 +60,8 @@ functions:
   #         method: delete
   #         cors: true
 
-# package:
-#    artifact: bin/release/netcoreapp1.0/publish/deploy-package.zip
+package:
+   artifact: bin/release/netcoreapp1.0/publish/deploy-package.zip
 
 resources:
   Resources:
