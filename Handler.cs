@@ -7,24 +7,20 @@ using Amazon.Lambda.Core;
 
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
-using Amazon.Lambda;
 using Amazon;
-using serverless_auth_msg_board.model;
 using Newtonsoft.Json;
+using ServerlessAuthMessageBoard.model;
 
-namespace serverless_auth_msg_board
+namespace ServerlessAuthMessageBoard
 {
     public class Handler
     {
         const string MESSAGE_BOARD_ENV_VAR_NAME = "DYNAMODB_MESSAGES_TABLE";
         IDynamoDBContext DDBContext { get; set; }
-        AmazonLambdaClient lambda;
 
         public Handler()
         {
             var messagesTableName = Environment.GetEnvironmentVariable(MESSAGE_BOARD_ENV_VAR_NAME);
-
-            lambda = new AmazonLambdaClient();
 
             if (messagesTableName == null)
                 Console.WriteLine("tableName is null");
@@ -35,6 +31,7 @@ namespace serverless_auth_msg_board
             }
 
             var config = new DynamoDBContextConfig { Conversion = DynamoDBEntryConversion.V2 };
+
             this.DDBContext = new DynamoDBContext(new AmazonDynamoDBClient(), config);
         }
 
@@ -42,15 +39,18 @@ namespace serverless_auth_msg_board
         [LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
         public async Task<APIGatewayProxyResponse> CreateMessage(APIGatewayProxyRequest request, ILambdaContext context)
         {
-            Console.WriteLine("Create Invoked");
-            var createMEssageRequest = JsonConvert.DeserializeObject<CreateMessageRequest>(request?.Body);
-
-            var message = new Message() {
-              MessageContent = createMEssageRequest.Message
+            var createMessageRequest = JsonConvert.DeserializeObject<CreateMessageRequest>(request?.Body);
+            if (createMessageRequest == null)
+                Console.WriteLine("Message not deserialized correctly");
+                
+            var message = new Message()
+            {
+                Id = Guid.NewGuid().ToString(),
+                MessageContent = createMessageRequest.Message
             };
-            Console.WriteLine(message.MessageContent);
-           await DDBContext.SaveAsync<Message>(message);
-           Console.WriteLine("Written!");
+
+            await DDBContext.SaveAsync<Message>(message);
+
             var response = new APIGatewayProxyResponse
             {
                 StatusCode = (int)HttpStatusCode.OK,
