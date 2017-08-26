@@ -12,20 +12,25 @@ def create_message(event, context):
     dynamodb = boto3.resource('dynamodb', region_name=dynamodb_region)
     table = dynamodb.Table(messages_table_name)
 
-
+    print('Event: '+json.dumps(event))
     message_id = str(uuid.uuid1())
+
+    body = json.loads(event['body']) if 'body' in event else None
+    message = body['Message'] if body is not None and 'Message' in body else 'No Message/Body found'
+
     try:
         put_response = table.put_item(
             Item = {
                 'Id': message_id,
-                'MessageContent': event['Body'] if 'Body' in event else 'Event body not found'
+                'MessageContent': message
             }
         )
     except Exception as e:
         err = e.response['Error']['Message']
         print(err)
         body = {
-            "error": err
+            "error": err,
+            "event": json.dumps(event)
         }
 
         return {
