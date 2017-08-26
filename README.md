@@ -51,8 +51,7 @@ IAM Role:
 
 1. Clone the project
 2. CD to the project's folder/directory
-3. build (using build.sh for Linux/OSX or build.ps1 for Windows Powershell)
-4. sls deploy
+3. sls deploy
 
 Once the service is set, an endpoint URL is created. Copy the path to the created API and paste it in the client as instructed in the [serverless-auth-msg-board-unity3d-client](https://github.com/guywald/serverless-auth-msg-board-unity3d-client) README.md file.
 
