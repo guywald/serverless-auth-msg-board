@@ -4,12 +4,13 @@ frameworkVersion: ">=1.9.0"
 
 provider:
   name: aws
-  runtime: dotnetcore1.0
+  runtime: python3.6
   stage: dev
-  region: us-east-1
+  region: eu-west-1
 
   environment:
     DYNAMODB_MESSAGES_TABLE: "${self:service}-${opt:stage, self:provider.stage}-message-board"
+    DYNAMODB_MESSAGES_TABLE_REGION: "${self:provider.region}"
 
   iamRoleStatements:
   - Effect: "Allow"
@@ -19,7 +20,7 @@ provider:
 
 functions:
   create:
-    handler: ServerlessAuthMessageBoard::ServerlessAuthMessageBoard.Handler::CreateMessage
+    handler: ServerlessAuthMessageBoard.create_message
     name: MessageBoardExampleCreate
     events:
       - http:
@@ -59,9 +60,6 @@ functions:
   #         path: msg/{id}
   #         method: delete
   #         cors: true
-
-package:
-   artifact: bin/release/netcoreapp1.0/publish/deploy-package.zip
 
 resources:
   Resources:
