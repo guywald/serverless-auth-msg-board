@@ -4,7 +4,7 @@ import uuid
 import json
 import os
 
-def create_message(event, context):
+def post(event, context):
 
     messages_table_name = os.environ['DYNAMODB_MESSAGES_TABLE']
     dynamodb_region = os.environ['DYNAMODB_MESSAGES_TABLE_REGION']
@@ -12,7 +12,6 @@ def create_message(event, context):
     dynamodb = boto3.resource('dynamodb', region_name=dynamodb_region)
     table = dynamodb.Table(messages_table_name)
 
-    print('Event: '+json.dumps(event))
     message_id = str(uuid.uuid1())
 
     body = json.loads(event['body']) if 'body' in event else None
@@ -30,7 +29,7 @@ def create_message(event, context):
         print(err)
         body = {
             "error": err,
-            "event": json.dumps(event)
+            "event": event
         }
 
         return {
@@ -46,3 +45,4 @@ def create_message(event, context):
             "statusCode": 200,
             "body": json.dumps(body)
         }
+

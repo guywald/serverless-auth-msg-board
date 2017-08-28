@@ -20,7 +20,7 @@ provider:
 
 functions:
   create:
-    handler: ServerlessAuthMessageBoard.create_message
+    handler: post.post
     name: MessageBoardExampleCreate
     events:
       - http:
@@ -37,13 +37,15 @@ functions:
   #         method: get
   #         cors: true
 
-  # get:
-  #   handler: msg/get.get
-  #   events:
-  #     - http:
-  #         path: msg/{id}
-  #         method: get
-  #         cors: true
+  get:
+    handler: get.get
+    name: MessageBoardExampleGetMessage
+    events:
+      - http:
+          path: message/{id}
+          method: get
+          cors: true
+          integration: lambda-proxy
 
   # update:
   #   handler: msg/update.update
